@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc>
+  <web>EESCCode</web>
+  <name>EESCGroupSite</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <parent/>
+  <creator>xwiki:XWiki.Admin</creator>
+  <author>xwiki:XWiki.Admin</author>
+  <customClass/>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <creationDate>1429093037000</creationDate>
+  <date>1431506009000</date>
+  <contentUpdateDate>1431506009000</contentUpdateDate>
+  <version>1.1</version>
+  <title>$services.localization.render("eesc.uas.sitecreation.pagetitle")</title>
+  <defaultTemplate/>
+  <validationScript/>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>false</hidden>
+  <object>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <disabled>0</disabled>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <name>EESCCode.EESCGroupSite</name>
+    <number>0</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>c16042d1-a77d-4766-be99-7db2423c1f05</guid>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>#**
+*   Script to check if the group site creation (Wiki provisionning) is completed.
+*   Send an ajax request every 1 second and display the creation progress.
+*   If the progress reached 100% then redirect to the main page of the group site.
+*#
+var siteCreationCheckURL = "$xwiki.getURL('EESCCode.EESCGroupSiteCreationCheck','view','xpage=plain&amp;outputSyntax=plain&amp;action=checkWikiCreation')";
+
+require(['jquery'],function($){
+$(function(){
+   if($("#groupWikiID").length == 1){
+      var groupWikiID = $("#groupWikiID").val();
+      window.setInterval(function(){
+         $.ajax({
+            method: "POST",
+            dataType:"json",
+            url: siteCreationCheckURL + "&amp;groupWikiID=" + groupWikiID
+         })
+         .done(function( rep ) {
+             var progress = (rep.jobProgress * 100).toFixed(2);
+             var redirectURL = rep.redirectURL;
+             $(".progress-bar").attr("style","width: " + progress + "%");
+             $(".sr-only").attr("style",progress + "% Complete (success)");
+             if(progress == 100){
+console.log(progress);
+                setTimeout(function(){
+                   window.location.replace(redirectURL);
+                }, 3000);
+             }
+         });
+      }, 5000);
+   }
+});
+});</code>
+    </property>
+    <property>
+      <name/>
+    </property>
+    <property>
+      <parse>1</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <content>{{velocity}}
+#*
+* Create a new goup web site (subwiki) if not exists or redirect to the group web site.
+*
+* Author: Mohamed Boussaa (mohamed.boussaa@xwiki.com)
+*#
+
+##############################################
+## Manage cookies parameters
+##############################################
+## GROUP_ID
+#set($groupID = $request.getParameter('GROUP_ID'))
+#set($groupIDCookie = $request.getCookie('GROUP_ID'))
+#if($groupID)
+   ## Edit or create the cookie if not exist
+   #if($groupIDCookie) 
+       ## Remove the cookie and create another one
+       #set($discard = $response.removeCookie('GROUP_ID',$request))
+       ## Cookie age 1 day 24*60*60 seconds
+       #set($discard = $response.addCookie('GROUP_ID',$groupID,86400))
+   #else 
+       ## Create
+       #set($discard = $response.addCookie('GROUP_ID',$groupID,86400))
+   #end
+#end
+
+## ETAB_ID
+#set($etabID = $request.getParameter('ETAB_ID'))
+#set($etabIDCookie = $request.getCookie('ETAB_ID'))
+#if($etabID)
+   ## Edit or create the cookie if not exist
+   #if($etabIDCookie) 
+       ## Remove the cookie and create another one
+       #set($discard = $response.removeCookie('ETAB_ID',$request))
+       ## Cookie age 1 day 24*60*60 seconds
+       #set($discard = $response.addCookie('ETAB_ID',$etabID,86400))
+   #else 
+       ## Create
+       #set($discard = $response.addCookie('ETAB_ID',$etabID,86400))
+   #end
+#end
+
+##############################################
+##                 GLOBALS
+##############################################
+## GLOBAL VARIABLES
+#set($userId = $xcontext.getUserReference().name)
+#set($groupsForUser = $services.eesc.getGroupsForUser($userId))
+#if(!$groupID)
+   #if($request.getCookie("GROUP_ID"))
+      #set($cookie = $request.getCookie('GROUP_ID'))
+      #set($groupID = $cookie.getValue())
+   #end
+#end
+
+#if(!$etabID)
+   #if($request.getCookie("ETAB_ID"))
+      #set($cookie = $request.getCookie('ETAB_ID'))
+      #set($etabID = $cookie.getValue())
+   #end
+#end
+#set($eescService =  $services.eesc)
+#set($userID = $xcontext.getUserReference().name)
+#set($user = $eescService.getUser($userID))
+#set($userStatus = $user.getStatus())
+#set($allowedStatus = ['TEACHER','PARENT','LOCAL_ADMIN'])
+#set($userGroups = $eescService.getGroupsForUser($userID))
+#set($wikiManager = $services.wiki)
+#set($wikiTemplateManager = $services.wiki.template)
+#set($wikiUserManager = $services.wiki.user)
+#set($templateWikiID = "templatewiki")
+#set($hasCreateWikiRights = $hasCreateWiki)
+#set($hasProgrammingRights = $hasProgramming)
+
+##############################################
+##                 Macros
+##############################################
+#**
+*   Give the createwiki right to the current user
+*#
+#macro(giveUserRight $right)
+   #set($xwikiPreferencesDoc = $xwiki.getDocument("XWiki.XWikiPreferences"))
+   #set($newRightObj = $xwikiPreferencesDoc.newObject('XWiki.XWikiGlobalRights'))
+   #set($discard = $newRightObj.set('users',"$context.user"))
+   #set($discard = $newRightObj.set('levels',$right))
+   #set($discard = $newRightObj.set('allow',1))
+   #set($discard = $xwikiPreferencesDoc.saveWithProgrammingRights())
+#end
+
+#**
+*   Remove the createwiki right of the current user
+*#
+#macro(removeUserRight $right)
+   #set($xwikiPreferencesDoc = $xwiki.getDocument("XWiki.XWikiPreferences"))
+   #set($rightsObjects = $xwikiPreferencesDoc.getObjects('XWiki.XWikiGlobalRights','users',"$context.user"))
+   #if($rightsObjects.size() &gt; 0)
+      #foreach($ro in $rightsObjects)
+         #if($ro.getValue('levels').equals($right))
+             ## Remove the object
+             #set($discard = $xwikiPreferencesDoc.removeObject($ro))
+             #set($discard = $xwikiPreferencesDoc.saveWithProgrammingRights())
+         #end
+      #end
+   #end
+#end
+
+##############################################
+##                 Processing
+##############################################
+## If creation confirmed call the js that check and display the progress of the site creation.
+#if("$!request.getParameter('confirm')" != '')
+   #set($discard = $xwiki.jsx.use('EESCCode.EESCGroupSite'))
+   #set($discard = $xwiki.jss.use('EESCCode.EESCGroupSite'))
+#end
+#if("$!etabID" != '' &amp;&amp; $eescService.isFromEtab($userId,$etabID) || true)
+#if("$!groupID" != '')
+## Check if the existance of the group web site
+#set($groupWikiID = "groupwebsite$groupID")
+#if($wikiManager.exists($groupWikiID))
+   ## Wiki exists, redirect
+   #set($wikiMainPageRef = $wikiManager.getById($groupWikiID).getMainPageReference())
+   #set($siteURL = $xwiki.getURL($wikiMainPageRef))
+   $response.sendRedirect($siteURL)
+#else
+   ## Create the wiki
+   ## Check if the user is belongs to the group, and if the user have the correct status
+   #if($eescService.isMember($userID, $groupID))
+      ## Check if the user status allows him to create the web site
+      #if($allowedStatus.contains($userStatus) || true)
+         ## Check if wikiId is valid and available
+         #if($wikiManager.idAvailable($groupWikiID) &amp;&amp; $wikiTemplateManager.isTemplate($templateWikiID))
+            #if("$!request.getParameter('confirm')" != '' &amp;&amp; $request.getParameter('confirm') == "1")
+               ## Create the web site
+               ## Give the createwiki right to the user if don't has it
+               #if(!$hasCreateWiki)
+                  #giveUserRight('createwiki')
+               #end
+               #set($ret = $wikiTemplateManager.createWikiFromTemplate($groupWikiID,$groupWikiID,$templateWikiID,"XWiki.Admin",true))
+               #set($discard = $wikiDescriptor.setPrettyName("Website of the group : $groupID"))
+               ## Remove the create wiki right of the user if the user had no createwiki right before
+               #if($ret)
+                  ## Succes
+                  ## Edit the properties of the new sub wiki
+                  ## Give the programming rights to the user to edit the subwiki properties
+                  #if(!$hasProgrammingRights)
+                     #giveUserRight('programming')
+                  #end
+                  ## Add members to the wiki
+                  #set($groupUsers = $eescService.getUsersForGroup("$groupID"))
+                  #set($usersIDs = [])
+                  #foreach($user in $groupUsers)
+                     #set($discard = $usersIDs.add("xwiki:XWiki.${user.id}"))
+                  #end
+                  #set($discard = $wikiUserManager.addMembers($usersIDs,$groupWikiID))
+                  ## Set the wiki pretty name and description
+                  #set($wikiDescriptor = $wikiManager.getById($groupWikiID))
+                  #set($discard = $wikiDescriptor.setPrettyName("Group $groupID - Website"))
+                  #set($discard = $wikiDescriptor.setDescription("Website of the group : $groupID"))
+                  #set($discard = $wikiManager.saveDescriptor($wikiDescriptor))
+                  ## Remove programming right for the user
+                  #if(!$hasProgrammingRights)
+                     #removeUserRight('programming')
+                  #end
+                  ## Remove the wiki creation right for the user (Done after finishing the creation of the subwiki)
+                  #if(!$hasCreateWikiRights)
+                     #removeUserRight('createwiki')
+                  #end
+                  {{html}}
+                     &lt;input type="hidden" value="$groupWikiID" id="groupWikiID"/&gt;
+                     &lt;div&gt;&lt;h2&gt;$services.localization.render("eesc.uas.sitecreation.creationprogress")&lt;/h2&gt;&lt;/div&gt;
+                     &lt;div class="progress"&gt;
+                        &lt;div class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 0%"&gt;
+                           &lt;span class="sr-only"&gt;0% Complete (success)&lt;/span&gt;
+                        &lt;/div&gt;
+                     &lt;/div&gt;
+                  {{/html}}
+               #else
+                  {{error}}
+                   $services.localization.render("eesc.uas.sitecreation.creationerror")
+                  {{/error}}
+               #end
+            #else
+               ## Show the confirmation form
+               #set($cancelURL = $xwiki.getDocument("xwiki:Main.WebHome").getURL())
+               {{html clean="false"}}
+                #set($fullmsg = $services.localization.render('eesc.uas.sitecreation.creationinvitation'))
+                #xwikimessageboxstart("$services.localization.render('eesc.uas.sitecreation.sitenotcreatedyet')" $fullmsg)
+                &lt;form action="$doc.getURL("view", "GROUP_ID=${groupID}&amp;confirm=1")" method="post"&gt;
+                   &lt;div class="hidden"&gt;
+                      &lt;input type="hidden" name="form_token" value="$!{services.csrf.getToken()}" /&gt;
+                      &lt;input type="hidden" name="confirm" value="1"/&gt;
+                   &lt;/div&gt;
+                   &lt;div class="buttonwrapper"&gt;
+                      &lt;input type="submit" class="button" value="$services.localization.render('eesc.uas.sitecreation.yes')"/&gt;
+                      &lt;a class="secondary button" href="$cancelURL"&gt;$services.localization.render('eesc.uas.sitecreation.no')&lt;/a&gt;
+                   &lt;/div&gt;
+                 &lt;/form&gt;
+                 #xwikimessageboxend()
+                 {{/html}}
+              #end      
+           #else
+              ## WikiID is invalid or not available
+              {{error}}
+               $services.localization.render("eesc.uas.sitecreation.invalidwikiid")
+              {{/error}}
+           #end
+        #else
+           ## The user does not have the proper status to create a group web site
+           {{error}}
+           $services.localization.render("eesc.uas.sitecreation.unauthorizedstatus")
+           {{/error}}
+        #end
+     #else
+        ## The user is not belongs to the group
+        {{error}}
+           $services.localization.render("eesc.uas.sitecreation.notbelongtogroup")
+        {{/error}}
+     #end
+#end
+#else
+{{error}}
+$services.localization.render('eesc.uas.sitecreation.groupidnotfound')
+{{/error}}
+#end
+#else
+{{error}}
+$services.localization.render('eesc.uas.sitecreation.notbelongtoetab')
+{{/error}}
+#end
+{{/velocity}}</content>
+</xwikidoc>
